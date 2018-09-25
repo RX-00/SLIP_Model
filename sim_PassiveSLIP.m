@@ -1,15 +1,15 @@
 % Plot the trajectory of the point mass of the SLIP model
 clear all, close all, clc
 
-% TODO: Double Check if your initial conditions and numbers make physical
-% sense
+% input struct for all the chosen variables and parameters for the physics
+% equations
+input.theta = [0, 45];
+input.dDef = 0.2;
+input.k = 100;
+input.m = 10;
+input.g = 9.81;
 
-theta = [0, 45];
-dDef = 0.2;
-k = 100;
-m = 10;
-
-y0 = [0, 5, 5, -9.8]; % Starting conditions of the state vector x, y, fwrd vel, upwrd vel
+y0 = [0; 5; 5; -9.8]; % Starting conditions of the state vector x, y, fwrd vel, upwrd vel
 
 refine = 4;
 options = odeset('Events', @events, 'OutputFcn', @odeplot, 'OutputSel', 1, ...
@@ -23,16 +23,25 @@ ax.YLim = [0 40];
 box on
 hold on;
 
-tspan = 0:.1:50; % How long the program runs, not sure if I need this
+tspan = 0:.1:100; % 5 sec should be enough, but why does the graph increase at 100?
 
-[t, y, te, ye, ie] = ode45(@(x, y)PassiveSLIP(theta, dDef, k, m), tspan, y0, options); % Need to figure out what the last two arguments do
+% Flight function
+%function dydt = f(t, y, input)
+%dydt = [y(2); -9.8; ]
 
-for i = 1 : 100
+% Stance function
+stanceDyn = @(t, y) PassiveSLIP(t, y, input);
+
+[t, y] = ode45(stanceDyn, tspan, y0);
+%[t, y, te, ye, ie] = ode45(stanceDyn, tspan, y0, options);
+
+% for i = 1 : 100
     % Plot the x and y coordinates of the SLIP model's COM
-end
+% end
 
-plot([x, y]);
+plot(t, y(:,1));
 xlabel('distance');
 ylabel('height');
 title('SLIP Model COM Trajectory');
 hold off
+
