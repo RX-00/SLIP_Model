@@ -12,7 +12,7 @@ function dy = SLIP_Stance(t, q, s)
     x = q(1);
     y = q(3);
 
-    xtd = 0;
+    xtd = q(5);
     ytd = 0;
   
     % Functions that describe the motion of the SLIP Model's COM
@@ -29,4 +29,5 @@ function dy = SLIP_Stance(t, q, s)
     dy(2, 1) = (Fx / s.m); % x double dot
     dy(3, 1) = q(4); % y dot
     dy(4, 1) = (Fyt / s.m); % y double dot
+    dy(5, 1) = 0;
 end
