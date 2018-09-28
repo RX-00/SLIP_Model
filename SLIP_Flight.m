@@ -14,5 +14,6 @@ function dy = SLIP_Flight(t, q, s)
     dy(3, 1) = q(4); % y dot
     dy(4, 1) = -s.g; % y double dot
     dy(5, 1) = 0;
+    %dy(6, 1) = 0;
 end
 

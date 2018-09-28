@@ -11,7 +11,10 @@ input.g = 9.81;
 
 phase = 0; % 0 for flight, 1 for stance
 
-q0 = [0; 0.01; 1; 0; 0]; % Starting conditions of the state vector x, fwrd vel, y, upwrd vel
+% Starting conditions of the state vector x, fwrd vel, y, upwrd vel,
+% foot position upon touchdown, and what phase you're in (0 for flight, 1
+% for stance)
+q0 = [0; 0.01; 1; 0; 0];
 
 refine = 4;
 
@@ -57,34 +60,40 @@ stanceDyn = @(t, q) SLIP_Stance(t, q, input);
 %[t, q] = ode45(stanceDyn, tspan, q0);
 %[t, q] = ode45(flightDyn, tspan, q0);
 
-
-% README:
-% TODO:
-% THINK ABOUT HOW THE ACCUMULATION OF DATA WORKS / 
-% HELPS WITH PLOTTING
-% CURRENTLY NOT UNDERSTANDING WHY NEED TO ACCUMULATE
-%
-% TAKE A LOOK AT BALLODE AND HOW IT DOES IT
-%
-
-while twhile < tend
+while isempty(tout) || tout(end) < tend
     if phase == 0
+        optionsFlight = odeset('Events', flightEvent, 'OutputFcn', @odeplot, 'OutputSel', 1, ...
+    'Refine', refine);
         [t, q, te, qe, ie] = ode45(flightDyn, [tstart(end) tend], q0, optionsFlight);
         tstart = t;
         q(5) = q(end,1) - input.d0 * cos(input.theta); % based on chosen theta
         q0 = q(end,:);
         
-        tout = [; t];
-        qout = [; q];
+        % Accumulate output
+        nt = length(t);
+        tout = [tout; t(2:nt)];
+        qout = [qout; q(2:nt,:)];
+        teout = [teout; te];
+        qeout = [qeout; te];
+        ieout = [ieout; te];
         
         phase = 1;
     else
+        optionsStance = odeset('Events', stanceEvent, 'OutputFcn', @odeplot, 'OutputSel', 1, ...
+    'Refine', refine);
         [t, q, te, qe, ie] = ode45(stanceDyn, [tstart(end) tend], q0, optionsStance);
         tstart = t;
         q0 = q(end,:);
         
-        tout = [; t];
-        qout = [; q];
+        %TODO: ADD A q(6) FOR WHAT PHASE YOU ARE IN
+        
+        % Accumulate output
+        nt = length(t);
+        tout = [tout; t(2:nt)];
+        qout = [qout; q(2:nt,:)];
+        teout = [teout; te];
+        qeout = [qeout; te];
+        ieout = [ieout; te];
         
         phase = 0;
     end

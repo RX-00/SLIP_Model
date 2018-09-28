@@ -30,4 +30,5 @@ function dy = SLIP_Stance(t, q, s)
     dy(3, 1) = q(4); % y dot
     dy(4, 1) = (Fyt / s.m); % y double dot
     dy(5, 1) = 0;
+    %dy(6, 1) = 1;
 end
