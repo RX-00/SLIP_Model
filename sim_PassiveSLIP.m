@@ -14,7 +14,7 @@ phase = 0; % 0 for flight, 1 for stance
 % Starting conditions of the state vector x, fwrd vel, y, upwrd vel,
 % foot position upon touchdown, and what phase you're in (0 for flight, 1
 % for stance)
-q0 = [0; 0.01; 1; 0; 0; 0];
+q0 = [0; 0.1; 1; 0; 0; 0];
 
 refine = 4;
 
@@ -37,7 +37,7 @@ optionsStance = odeset('Events', stanceEvent, 'OutputFcn', @odeplot, 'OutputSel'
 % hold on;
 
 % time stuff
-tspan = [0 5];
+tspan = [0 10];
 tstart = tspan(1);
 tend = tspan(end);
 twhile = tstart; % global solution time
@@ -97,10 +97,10 @@ end
 
 plot(qout(:,1), qout(:,3));
 
-%plot(q(:,1), q(:,3));
-
 xlabel('distance');
 ylabel('height');
 title('SLIP Model COM Trajectory');
 hold off
 
+% PLOT ALL OF YOUR DATA
+animate_SLIP(qout, input, tout);
