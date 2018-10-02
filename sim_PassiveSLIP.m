@@ -3,18 +3,16 @@ clear; close all; clc
 
 % input struct for all the chosen variables and parameters for the physics
 % equations
-input.theta = 5 * pi / 4;
+input.theta = pi / 2;
 input.d0 = 0.9; % Changed dDef to d0 since it's just better notation
-input.k = 100;
+input.k = 1000;
 input.m = 10;
 input.g = 9.81;
-
-phase = 0; % 0 for flight, 1 for stance
 
 % Starting conditions of the state vector x, fwrd vel, y, upwrd vel,
 % foot position upon touchdown, and what phase you're in (0 for flight, 1
 % for stance)
-q0 = [0; 0.1; 1; 0; 0; 0];
+q0 = [0; 0.01; 1; 0; 0; 0];
 
 refine = 4;
 
@@ -37,7 +35,8 @@ optionsStance = odeset('Events', stanceEvent, 'OutputFcn', @odeplot, 'OutputSel'
 % hold on;
 
 % time stuff
-tspan = [0 10];
+tspan = [0 20];
+tStep = 0.01;
 tstart = tspan(1);
 tend = tspan(end);
 twhile = tstart; % global solution time
@@ -60,11 +59,11 @@ stanceDyn = @(t, q) SLIP_Stance(t, q, input);
 %[t, q] = ode45(stanceDyn, tspan, q0);
 %[t, q] = ode45(flightDyn, tspan, q0);
 
-while isempty(tout) || tout(end) < tend
+while isempty(tout) || tout(end) < tend - tStep
     if q0(6) == 0
         optionsFlight = odeset('Events', flightEvent, 'OutputFcn', @odeplot, 'OutputSel', 1, ...
     'Refine', refine);
-        [t, q, te, qe, ie] = ode45(flightDyn, [tstart(end) tend], q0, optionsFlight);
+        [t, q, te, qe, ie] = ode45(flightDyn, [tstart(end):tStep:tend], q0, optionsFlight);
         tstart = t;
         q(end, 5) = q(end,1) - input.d0 * cos(input.theta); % based on chosen theta
         q(end, 6) = 1;
@@ -80,7 +79,7 @@ while isempty(tout) || tout(end) < tend
     else
         optionsStance = odeset('Events', stanceEvent, 'OutputFcn', @odeplot, 'OutputSel', 1, ...
     'Refine', refine);
-        [t, q, te, qe, ie] = ode45(stanceDyn, [tstart(end) tend], q0, optionsStance);
+        [t, q, te, qe, ie] = ode45(stanceDyn, [tstart(end):tStep:tend], q0, optionsStance);
         tstart = t;
         q(end, 6) = 0;
         q0 = q(end,:);

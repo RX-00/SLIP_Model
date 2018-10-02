@@ -6,5 +6,5 @@ function [valFs, isterminal, direction] = stanceToFlight(t, q, s)
     valFs = s.k * (s.d0 - d); % if the spring force is 0 then you've left the ground
     isterminal = 1; % stops the integration
     
-    direction = 1;
+    direction = -1;
 end
