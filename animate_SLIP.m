@@ -22,8 +22,11 @@ function [] = animate_SLIP(q, s, t)
     % Visual patches
     ground_patch = patch([-50, -50, 50, 50], [0, -10, -10, 0], [0.5, 0.5, 0.5]);
     body_patch = patch(q(1, 1) + 0.1 * sin(0: 0.1: 2 * pi), q(1, 3) + 0.1 * cos(0: 0.1: 2 * pi), [70, 216, 226]./255);
-    leg_patch = patch(q(1, 1) + [0.01,0.01,-0.01,-0.01]*cos(s.theta) + d * [0,1,1,0]*sin(s.theta),...);
-        q(1, 3) - [0.01,0.01,-0.01,-0.01] * sin(s.theta) + d * [0,-1,-1,0] * cos(s.theta), 'k');
+    
+    leg_patch = patch(q(1, 1) + [0.01,0.01,-0.01,-0.01]*cos(pi / 2 + s.theta) + d * [0,1,1,0]*sin(pi / 2 + s.theta),...);
+        q(1, 3) - [0.01,0.01,-0.01,-0.01] * sin(pi / 2 + s.theta) + d * [0,-1,-1,0] * cos(pi / 2 + s.theta), 'k');
+    
+    drawnow;
     
     % Loop through the data and update the graphics
     for i = 1:length(t)
@@ -34,11 +37,33 @@ function [] = animate_SLIP(q, s, t)
         y = q(i, 3);
         xtd = q(i, 5);
         ytd = 0;
+        d0 = 0.9;
         d = sqrt((x - xtd)^2 + (y)^2);
+
         
-        leg_patch.Vertices = [q(i, 1) + [0.01,0.01,-0.01,-0.01] * cos(s.theta) + d * [0,1,1,0] * sin(s.theta);...);
-                       q(i, 3) + [0.01,0.01,-0.01,-0.01] * sin(s.theta) + d * [0,-1,-1,0] * cos(s.theta)]';
         
+        %stanceTheta = pi - asin(y / d);
+        inputTheta = acos(y / d); % IT WORKS
+        %inputTheta = (pi / 2 + stanceTheta);
+        % NOTE: This algorithm was originally for pitch angle of the leg
+        % from the body and so in order to use it with your touchdown angle
+        % (right side angle of leg touching ground) you need to add
+        % pi / 2
+        % NOTE: This line uses the pitch angle from if the leg was straight
+        % up and down to where the leg actually is
+        %leg_patch.Vertices = [q(i, 1) + [0.01,0.01,-0.01,-0.01] * cos(inputTheta) + d * [0,1,1,0] * sin(inputTheta);...);
+                       %q(i, 3) + [0.01,0.01,-0.01,-0.01] * sin(inputTheta) + d * [0,-1,-1,0] * cos(inputTheta)]';
+        
+        if(q(i, 6) == 0) % If it is in flight lift leg up and be d0
+            leg_patch.Vertices = [q(i, 1) + [0.01,0.01,-0.01,-0.01] * cos(inputTheta) + s.d0 * [0,1,1,0] * sin(inputTheta);...);
+                       q(i, 3) + [0.01,0.01,-0.01,-0.01] * sin(inputTheta) + s.d0 * [0,-1,-1,0] * cos(inputTheta)]';
+        else
+            leg_patch.Vertices = [q(i, 1) + [0.01,0.01,-0.01,-0.01] * cos(inputTheta) + d * [0,1,1,0] * sin(inputTheta);...);
+                       q(i, 3) + [0.01,0.01,-0.01,-0.01] * sin(inputTheta) + d * [0,-1,-1,0] * cos(inputTheta)]';
+        end                   
+                   
+                   
+                   
         ylim([-2, 2]);
         
         % Increment the screen by 0.5 m increments
