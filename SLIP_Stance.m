@@ -11,7 +11,7 @@ function dy = SLIP_Stance(t, q, s)
     
     x = q(1);
     y = q(3);
-
+    
     xtd = q(5);
     ytd = 0;
   

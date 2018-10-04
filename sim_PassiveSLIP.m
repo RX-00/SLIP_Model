@@ -3,7 +3,8 @@ clear; close all; clc
 
 % input struct for all the chosen variables and parameters for the physics
 % equations
-input.theta = 5 * pi / 4;
+input.theta = 5 * pi / 8;
+assert(input.theta < pi, 'ERROR: Touchdown theta must not be greater than pi')
 input.d0 = 0.9; % Changed dDef to d0 since it's just better notation
 input.k = 1000;
 input.m = 10;
@@ -12,7 +13,7 @@ input.g = 9.81;
 % Starting conditions of the state vector x, fwrd vel, y, upwrd vel,
 % foot position upon touchdown, and what phase you're in (0 for flight, 1
 % for stance)
-q0 = [0; 0.01; 2; 0; 0; 0];
+q0 = [0; 0.001; 1.5; 0; 0; 0];
 
 refine = 4;
 

@@ -5,13 +5,10 @@ function [position, isterminal, direction] = flightToStance(t, q, s)
     
     % TODO: FIX THIS AS YOU'RE NOT PROPERLY TRANSITIONING FROM FLIGHT TO
     % STANCE
-    if (s.d0 * sin(s.theta) <= 0 || s.d0 * sin(s.theta) == 0)
-        ytd = 0; % If this equals zero then change stance
-    else
-        ytd = 1;
-    end
-    position = q(3) - ytd;     % detect height = touchdown height
-    isterminal = 1;   % stop the integration
+    ytd = s.d0 * sin(s.theta);
+    % Check for multiple triggers
+    position = [q(3) - ytd, q(3)];     % detect height = touchdown height, q(3) == 0
+    isterminal = [1, 1];   % stop the integration
     
-    direction = -1;
+    direction = [-1, ];
 end
