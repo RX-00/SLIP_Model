@@ -1,19 +1,23 @@
-% Plot the trajectory of the point mass of the SLIP model
+% sim_PassiveSLIP attempt at a passive SLIP model by Roy X.
+% Find (x, y) of the point mass!
+% 
+% q = [ x, x dot, y, y dot]
+
 clear; close all; clc
 
 % input struct for all the chosen variables and parameters for the physics
 % equations
-input.theta = 5 * pi / 8;
+input.theta = 4.5 * pi / 8;
 assert(input.theta < pi, 'ERROR: Touchdown theta must not be greater than pi')
 input.d0 = 0.9; % Changed dDef to d0 since it's just better notation
-input.k = 1000;
-input.m = 10;
+input.k = 2000;
+input.m = 20;
 input.g = 9.81;
 
 % Starting conditions of the state vector x, fwrd vel, y, upwrd vel,
 % foot position upon touchdown, and what phase you're in (0 for flight, 1
 % for stance)
-q0 = [0; 0.001; 1.5; 0; 0; 0];
+q0 = [0; 0.00001; 1.5; 0; 0; 0];
 
 refine = 4;
 
@@ -65,7 +69,8 @@ while isempty(tout) || tout(end) < tend - tStep
         optionsFlight = odeset('Events', flightEvent, 'OutputFcn', @odeplot, 'OutputSel', 1, ...
     'Refine', refine);
         [t, q, te, qe, ie] = ode45(flightDyn, [tstart(end):tStep:tend], q0, optionsFlight);
-        tstart = t;
+              
+        tstart = t;        
         q(end, 5) = q(end,1) - input.d0 * cos(input.theta); % based on chosen theta
         q(end, 6) = 1;
         q0 = q(end,:);
@@ -77,10 +82,18 @@ while isempty(tout) || tout(end) < tend - tStep
         teout = [teout; te];
         qeout = [qeout; te];
         ieout = [ieout; te];
+        
+        % Check if everything is alright, i.e. not y < 0
+        if q(end, 3) <= 0
+            % Terminate the program for the SLIP model has fallen
+            fprintf('SLIP Model has fallen (y < 0) at t = %f \n', tout(end))
+            break;
+        end
     else
         optionsStance = odeset('Events', stanceEvent, 'OutputFcn', @odeplot, 'OutputSel', 1, ...
     'Refine', refine);
         [t, q, te, qe, ie] = ode45(stanceDyn, [tstart(end):tStep:tend], q0, optionsStance);
+        
         tstart = t;
         q(end, 6) = 0;
         q0 = q(end,:);
@@ -92,7 +105,15 @@ while isempty(tout) || tout(end) < tend - tStep
         teout = [teout; te];
         qeout = [qeout; te];
         ieout = [ieout; te];
+        
+        % Check if everything is alright, i.e. not y < 0
+        if q(end, 3) <= 0
+            % Terminate the program for the SLIP model has fallen
+            fprintf('SLIP Model has fallen (y < 0) at t = %f \n', tout(end))
+            break;
+        end
     end
+    
 end
 
 plot(qout(:,1), qout(:,3));
