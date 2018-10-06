@@ -45,7 +45,11 @@ function [] = animate_SLIP(q, s, t)
 
                 
         %stanceTheta = pi - asin(y / d);
-        inputTheta = acos(y / d); % IT WORKS
+        if (s.theta < pi / 2)
+            inputTheta = 2 * pi - acos(y / d); % IT WORKS
+        else
+            inputTheta = acos(y / d); % IT WORKS
+        end
         %inputTheta = (pi / 2 + stanceTheta);
         % NOTE: This algorithm was originally for pitch angle of the leg
         % from the body and so in order to use it with your touchdown angle

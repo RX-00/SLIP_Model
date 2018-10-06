@@ -19,10 +19,11 @@ function dy = SLIP_Stance(t, q, s)
     d = sqrt((x - xtd)^2 + (y)^2);
     assert(d ~= 0, 'COM distance from zero must not be zero')
     sinT = y / d;
-    cosT = x / d;
+    x0 = (s.d0 * cos(pi - s.theta));
+    cosT =  (x - x0)/ d;
     Fs = s.k * (s.d0 - d);
     Fy = Fs * sinT;
-    Fx = Fs * cosT;
+    Fx = round(Fs * cosT, 10)
     Fyt = Fy - s.m * s.g;
     
     %assert(y == 0, 'ERROR: SLIP Has fallen to the ground, y = 0')
