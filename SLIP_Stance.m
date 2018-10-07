@@ -23,7 +23,7 @@ function dy = SLIP_Stance(t, q, s)
     cosT =  (x - x0)/ d;
     Fs = s.k * (s.d0 - d);
     Fy = Fs * sinT;
-    Fx = round(Fs * cosT, 10)
+    Fx = round(Fs * cosT, 10);
     Fyt = Fy - s.m * s.g;
     
     %assert(y == 0, 'ERROR: SLIP Has fallen to the ground, y = 0')
