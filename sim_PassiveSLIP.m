@@ -7,17 +7,21 @@ clear; close all; clc
 
 % input struct for all the chosen variables and parameters for the physics
 % equations
-input.theta = 8 * pi / 16;
+input.theta = pi / 2.0001;
 assert(input.theta < pi, 'ERROR: Touchdown theta must not be greater than pi')
-input.d0 = 0.8; % Changed dDef to d0 since it's just better notation
-input.k = 2000;
-input.m = 10;
+input.d0 = .7; % Changed dDef to d0 since it's just better notation
+input.k = 9000;
+input.m = 20;
 input.g = 9.81;
 
 % Starting conditions of the state vector x, fwrd vel, y, upwrd vel,
 % foot position upon touchdown, and what phase you're in (0 for flight, 1
 % for stance)
-q0 = [0; 0; 1.5; 0; 0; 0];
+q0 = [0; .0001; 1.2; 0; 0; 0];
+
+%-------------------------------------------------------------------- 
+% TODO: TIME TO IMPLEMENT RAIBERT CONTROLLER
+%--------------------------------------------------------------------
 
 refine = 4;
 
@@ -40,7 +44,7 @@ optionsStance = odeset('Events', stanceEvent, 'OutputFcn', @odeplot, 'OutputSel'
 % hold on;
 
 % time stuff
-tspan = [0 1000 * 5];
+tspan = [0 20];
 tStep = 0.01;
 tstart = tspan(1);
 tend = tspan(end);
@@ -64,6 +68,8 @@ stanceDyn = @(t, q) SLIP_Stance(t, q, input);
 %[t, q] = ode45(stanceDyn, tspan, q0);
 %[t, q] = ode45(flightDyn, tspan, q0);
 
+bounce_num = 0;
+
 while isempty(tout) || tout(end) < tend - tStep
     if q0(6) == 0
         optionsFlight = odeset('Events', flightEvent, 'OutputFcn', @odeplot, 'OutputSel', 1, ...
@@ -74,6 +80,7 @@ while isempty(tout) || tout(end) < tend - tStep
         q(end, 5) = q(end,1) - input.d0 * cos(input.theta); % based on chosen theta
         q(end, 6) = 1;
         q0 = q(end,:);
+        bounce_num = bounce_num + 1; % you can't do ++??!!
         
         % Accumulate output
         nt = length(t);
@@ -117,6 +124,7 @@ while isempty(tout) || tout(end) < tend - tStep
 end
 
 plot(qout(:,1), qout(:,3));
+fprintf('Bounced %d times \n', bounce_num)
 
 xlabel('distance');
 ylabel('height');
