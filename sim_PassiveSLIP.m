@@ -7,21 +7,27 @@ clear; close all; clc
 
 % input struct for all the chosen variables and parameters for the physics
 % equations
-input.theta = pi / 2.0001;
+input.theta = 8.1 * pi / 16;
 assert(input.theta < pi, 'ERROR: Touchdown theta must not be greater than pi')
 input.d0 = .7; % Changed dDef to d0 since it's just better notation
-input.k = 9000;
+input.k = 7000;
 input.m = 20;
 input.g = 9.81;
+input.d_fwrd_vel = .001;
 
 % Starting conditions of the state vector x, fwrd vel, y, upwrd vel,
 % foot position upon touchdown, and what phase you're in (0 for flight, 1
 % for stance)
-q0 = [0; .0001; 1.2; 0; 0; 0];
+q0 = [0; 1*10^-1; 1.2; 0; 0; 0];
 
 %-------------------------------------------------------------------- 
-% TODO: TIME TO IMPLEMENT RAIBERT CONTROLLER
+% TODO: Figure out how to implement the controller better 
 %--------------------------------------------------------------------
+%---------------------------------------------
+% TODO: After finding touchdown angle
+% snap the leg to the angle during flight
+% and just hold it there
+%---------------------------------------------
 
 refine = 4;
 
@@ -34,14 +40,6 @@ optionsFlight = odeset('Events', flightEvent, 'OutputFcn', @odeplot, 'OutputSel'
     'Refine', refine);
 optionsStance = odeset('Events', stanceEvent, 'OutputFcn', @odeplot, 'OutputSel', 1, ...
     'Refine', refine);
-
-% graph stuff
-% fig = figure;
-% ax = axes;
-% ax.XLim = [0 10];
-% ax.YLim = [0 10];
-% box on
-% hold on;
 
 % time stuff
 tspan = [0 20];
@@ -75,12 +73,13 @@ while isempty(tout) || tout(end) < tend - tStep
         optionsFlight = odeset('Events', flightEvent, 'OutputFcn', @odeplot, 'OutputSel', 1, ...
     'Refine', refine);
         [t, q, te, qe, ie] = ode45(flightDyn, [tstart(end):tStep:tend], q0, optionsFlight);
-              
-        tstart = t;        
-        q(end, 5) = q(end,1) - input.d0 * cos(input.theta); % based on chosen theta
+        
+        tstart = t;
+        % forward foot placement
+        q(end, 5) = q(end,1) - input.d0 * cos(pi - input.theta); % based on chosen theta
         q(end, 6) = 1;
         q0 = q(end,:);
-        bounce_num = bounce_num + 1; % you can't do ++??!!
+        bounce_num = bounce_num + 1; % you can't do ++ in Matlab??!! smh
         
         % Accumulate output
         nt = length(t);
@@ -100,11 +99,16 @@ while isempty(tout) || tout(end) < tend - tStep
         optionsStance = odeset('Events', stanceEvent, 'OutputFcn', @odeplot, 'OutputSel', 1, ...
     'Refine', refine);
         [t, q, te, qe, ie] = ode45(stanceDyn, [tstart(end):tStep:tend], q0, optionsStance);
-        
+
         tstart = t;
         q(end, 6) = 0;
         q0 = q(end,:);
-                
+        
+        % RAIBERT CONTROLLER
+        %[xf, theta] = raibertController(q, input, t);
+        %input.theta = theta;
+        %q0(5) = xf;
+  
         % Accumulate output
         nt = length(t);
         tout = [tout; t(2:nt)];

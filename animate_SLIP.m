@@ -4,7 +4,7 @@ function [] = animate_SLIP(q, s, t)
 
     figure(100); % TODO: Figure out this whole animation process thing
     cla
-    xlim([-0.5, 0.5]);
+    xlim([-3.5, 3.5]);
     ylim([-0.3, 2]);
     grid on;
     axis equal;
@@ -24,14 +24,14 @@ function [] = animate_SLIP(q, s, t)
     
     body_patch = patch(q(1, 1) + 0.1 * sin(0: 0.1: 2 * pi), q(1, 3) + 0.1 * cos(0: 0.1: 2 * pi), [70, 216, 226]./255);
     
-    startTheta = s.theta; %acos(q(1, 3) / s.d0);
+    startTheta = s.theta - pi / 2;
     leg_patch = patch(q(1, 1) + [0.01,0.01,-0.01,-0.01] * cos(startTheta) + s.d0 * [0,1,1,0] * sin(startTheta),...);
          q(1, 3) + [0.01,0.01,-0.01,-0.01] * sin(startTheta) + s.d0 * [0,-1,-1,0] * cos(startTheta), 'k');
 
     drawnow;
     
     % Loop through the data and update the graphics
-    for i = 1:length(t)
+    for i = 1:(length(t) - 1) % minus one in order to not animate the last part of the data that changes from stance (fallen) to flight (even though irl that is impossible)
         
         body_patch.Vertices = [q(i, 1) + 0.1 * sin(0: 0.1: 2 * pi); q(i, 3) + 0.1 * cos(0: 0.1: 2 * pi)]';
         
@@ -40,17 +40,17 @@ function [] = animate_SLIP(q, s, t)
         y = q(i, 3);
         xtd = q(i, 5);
         ytd = 0;
-        d0 = 0.9;
+        d0 = s.d0;
         d = sqrt((x - xtd)^2 + (y)^2);
 
-                
-        %stanceTheta = pi - asin(y / d);
-        if (s.theta < pi / 2)
-            inputTheta = 2 * pi - acos(y / d); % IT WORKS
-        else
-            inputTheta = acos(y / d); % IT WORKS
-        end
-        %inputTheta = (pi / 2 + stanceTheta);
+        
+        %-------------------------------------------
+        % TODO: After finding touchdown angle
+        % snap the leg to the angle during flight
+        % and just hold it there
+        %-------------------------------------------
+         
+        
         % NOTE: This algorithm was originally for pitch angle of the leg
         % from the body and so in order to use it with your touchdown angle
         % (right side angle of leg touching ground) you need to add
@@ -60,20 +60,31 @@ function [] = animate_SLIP(q, s, t)
         %leg_patch.Vertices = [q(i, 1) + [0.01,0.01,-0.01,-0.01] * cos(inputTheta) + d * [0,1,1,0] * sin(inputTheta);...);
                        %q(i, 3) + [0.01,0.01,-0.01,-0.01] * sin(inputTheta) + d * [0,-1,-1,0] * cos(inputTheta)]';
         
-        if(q(i, 6) == 0) % If it is in flight lift leg up and be d0
-            leg_patch.Vertices = [q(i, 1) + [0.01,0.01,-0.01,-0.01] * cos(inputTheta) + s.d0 * [0,1,1,0] * sin(inputTheta);...);
-                       q(i, 3) + [0.01,0.01,-0.01,-0.01] * sin(inputTheta) + s.d0 * [0,-1,-1,0] * cos(inputTheta)]';
-        else
+        if(q(i, 6) == 1)
+            inputTheta = asin((xtd - x) / d);
             leg_patch.Vertices = [q(i, 1) + [0.01,0.01,-0.01,-0.01] * cos(inputTheta) + d * [0,1,1,0] * sin(inputTheta);...);
                        q(i, 3) + [0.01,0.01,-0.01,-0.01] * sin(inputTheta) + d * [0,-1,-1,0] * cos(inputTheta)]';
+            %leg_patch.Vertices = [q(i, 1) + [0.01,0.01,-0.01,-0.01] * cos(inputTheta) + d * [0,1,1,0] * sin(inputTheta);...);
+                       %q(i, 3) + [0.01,0.01,-0.01,-0.01] * sin(inputTheta) + d * [0,-1,-1,0] * cos(inputTheta)]';
+        else % If it is in flight lift leg up and be d0
+            %assert( abs(xtd -x) < d0, "Here come some imaginary nums")
+            %inputTheta = asin((xtd - x) / d0);
+            inputTheta = s.theta - (pi / 2);
+            if(q(i, 2) < 0)
+                inputTheta = -inputTheta;
+            end            
+            if abs(imag(q(i,1))) > 0 || abs(imag(inputTheta)) > 0
+                1+1;
+            end
+            leg_patch.Vertices = [q(i, 1) + [0.01,0.01,-0.01,-0.01] * cos(inputTheta) + d0 * [0,1,1,0] * sin(inputTheta);...);
+                       q(i, 3) + [0.01,0.01,-0.01,-0.01] * sin(inputTheta) + d0 * [0,-1,-1,0] * cos(inputTheta)]';
         end                   
                    
-                   
-                   
+  
         ylim([-2, 2]);
         
         % Increment the screen by 0.5 m increments
-        xlim([-1.5, 1.5] + round(q(i, 1) * 2) / 2);
+        %xlim([-1.5, 1.5] + round(q(i, 1) * 2) / 2);
         
         drawnow;
         %pause(0.1);
