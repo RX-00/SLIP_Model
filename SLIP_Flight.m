@@ -4,7 +4,7 @@ function dy = SLIP_Flight(t, q, s)
 % This is the stance phase
 % s stands for the struct of all the parameters
 %
-% q = [ x, x dot, y, y dot, ft pos, phase]
+% q = [ x, x dot, y, y dot, ft pos, phase, touchdown theta]
 % NOTE: changed the y state vector name to q just for clarity
 % Thus, in order to define x and y you must do
 % x = y(:,1), y = y(:,3)
@@ -15,5 +15,6 @@ function dy = SLIP_Flight(t, q, s)
     dy(4, 1) = -s.g; % y double dot
     dy(5, 1) = 0; % foot position upon touchdown
     dy(6, 1) = 0; % what phase you're in, but you don't want to set the value here or else it will be part of the integration
+    dy(7, 1) = 0; % touchdown theta
 end
 
