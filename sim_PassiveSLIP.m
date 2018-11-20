@@ -22,6 +22,8 @@ input.k = 4500;                       % spring stiffness constant (N/m)
 input.m = 20;                         % mass of the SLIP model (kg)
 input.g = 9.81;                       % gravity constant (m/s/s)
 input.d_fwrd_vel = 0.9;               % target forward velocity (m/s)
+input.currentApexY = 0;               % current apex height y_i (m)
+input.prevApexY = 0;                  % previous apex height y_i-1 (m)
 
 % Starting conditions of the state vector x, fwrd vel, y, upwrd vel,
 % foot position upon touchdown, and what phase you're in (0 for flight, 1
@@ -49,7 +51,7 @@ optionsStance = odeset('Events', stanceEvent, 'OutputFcn', @odeplot, 'OutputSel'
     'Refine', refine); % End of stance trigger, is passed to ODE for stance
 
 % time stuff
-tspan = [0 20];        % How long in seconds the simulation will run for
+tspan = [0 100];        % How long in seconds the simulation will run for
 tStep = 0.009;         % How big of a time step the simulation moves through when solving
 tstart = tspan(1);     % Start of the simulation time
 tend = tspan(end);     % End of the simulation time
@@ -89,8 +91,18 @@ while isempty(tout) || tout(end) < tend - tStep
         q(end, 6) = 1;                  % Set the phase flag to stance
         q0 = q(end,:);                  % Update the current state vector
         bounce_num = bounce_num + 1;
-
         
+        % Calculate apex height in flight & time fall here?
+        for i = 1:(length(q))
+            if(q(3) > input.currentApexY)
+                input.prevApexY = input.currentApexY;
+                input.currentApexY = q(3);
+                fprintf('Current apex y_i: %f, Previous apex y_i-1: %f\n',...
+                    input.currentApexY, input.prevApexY);
+            end
+        end
+        
+
         % Accumulate output
         nt = length(t);
         tout = [tout; t(2:nt)];

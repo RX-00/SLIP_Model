@@ -4,7 +4,7 @@ function [position, isterminal, direction] = flightToStance(t, q, s)
 %   know you have hit the ground. given the touchdown angle
     
     ytd = s.d0 * sin(q(7));            % calculate the touchdown height of the SLIP model
-
+    
     % Check for multiple triggers
     position = [q(3) - ytd, q(3)];     % detect current height == touchdown height, q(3) == 0, when these equal zero -> stop integration
     isterminal = [1, 1];               % stop the integration
